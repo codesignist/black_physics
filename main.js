@@ -139,9 +139,77 @@ spawnInitialBalls();
 
 setInterval(() => spawnBall(false), 1000); // 1 per second
 
-// Custom Render for Plus signs
+// Custom Render for Plus signs and Growing Ball
+let isGrowing = false;
+let growthPos = { x: 0, y: 0 };
+let currentGrowthRadius = minBallRadius;
+
+Events.on(mouseConstraint, 'mousedown', function(event) {
+    // Check if we clicked on a body (handled by MouseConstraint)
+    const mousePosition = event.mouse.position;
+    const bodies = Composite.allBodies(world);
+    const clickedBody = Matter.Query.point(bodies, mousePosition)[0];
+
+    if (!clickedBody) {
+        // Clicked on empty space, start growing
+        isGrowing = true;
+        growthPos = { ...mousePosition };
+        currentGrowthRadius = minBallRadius;
+    }
+});
+
+Events.on(mouseConstraint, 'mouseup', function(event) {
+    if (isGrowing) {
+        // Spawn the ball with current size
+        const ball = Bodies.circle(growthPos.x, growthPos.y, currentGrowthRadius, {
+            restitution: 0.9,
+            friction: 0.005,
+            render: { fillStyle: '#000' }
+        });
+        
+        Composite.add(world, ball);
+        balls.push(ball);
+
+        // Remove oldest to maintain count if needed, or just let it be user-added extra
+        // If we want strictly 30, we should remove. If we allow extras, no remove.
+        // Let's remove to keep performance/logic consistent.
+        if (balls.length > targetBallCount) {
+            const oldest = balls.shift();
+            Composite.remove(world, oldest);
+        }
+        
+        isGrowing = false;
+    }
+});
+
 Events.on(render, 'afterRender', function() {
     const context = render.context;
+    
+    // Draw Growing Ball
+    if (isGrowing) {
+        // Increase size
+        if (currentGrowthRadius < maxBallRadius) {
+            currentGrowthRadius += 2; // Growth speed
+        }
+        
+        context.beginPath();
+        context.arc(growthPos.x, growthPos.y, currentGrowthRadius, 0, 2 * Math.PI);
+        context.fillStyle = '#000';
+        context.fill();
+        
+        // Draw Plus on growing ball (optional, but looks good)
+        context.save();
+        context.translate(growthPos.x, growthPos.y);
+        context.font = "bold 20px Arial";
+        context.fillStyle = "white";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText("+", currentGrowthRadius * 0.6, 0); // Roughly position
+        context.fillText("+", -currentGrowthRadius * 0.6, 0);
+        context.restore();
+    }
+
+    // Draw Plus signs on existing balls
     context.font = "bold 20px Arial";
     context.fillStyle = "white";
     context.textAlign = "center";
