@@ -38,7 +38,7 @@ const wallThickness = 150; // Thick walls so fast objects don't tunnel through e
 const width = window.innerWidth;
 const height = window.innerHeight;
 
-const ground = Bodies.rectangle(width / 2, height + wallThickness / 2 - 10, width + 200, wallThickness, { 
+const ground = Bodies.rectangle(width / 2, height + wallThickness / 2, width + 200, wallThickness, { 
     isStatic: true,
     render: { fillStyle: '#000' }
 });
@@ -277,6 +277,6 @@ window.addEventListener('resize', () => {
     render.canvas.height = window.innerHeight;
     
     // Update boundaries
-    Matter.Body.setPosition(ground, { x: window.innerWidth / 2, y: window.innerHeight + wallThickness / 2 - 10 });
+    Matter.Body.setPosition(ground, { x: window.innerWidth / 2, y: window.innerHeight + wallThickness / 2 });
     Matter.Body.setPosition(rightWall, { x: window.innerWidth + wallThickness / 2, y: window.innerHeight / 2 });
 });
